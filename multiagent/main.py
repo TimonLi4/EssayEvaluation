@@ -6,6 +6,15 @@ import spacy
 import pandas as pd
 import string
 import pyphen
+import os
+
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+key_api = os.getenv('API_KEY')
+
 
 tokenizer = AutoTokenizer.from_pretrained("grammarly/coedit-large")
 tokenizer_to_words = WordPunctTokenizer()
@@ -122,5 +131,8 @@ if __name__ =='__main__':
 
 
     print('Clarity of text - ',flesgKincaid-numOfComplexConstructions)
+
+
+    print(key_api)
 
 
