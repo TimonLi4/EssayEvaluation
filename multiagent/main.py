@@ -11,6 +11,9 @@ import os
 from dotenv import load_dotenv
 
 
+
+
+
 load_dotenv()
 
 key_api = os.getenv('API_KEY')
