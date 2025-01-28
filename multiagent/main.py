@@ -12,8 +12,6 @@ from dotenv import load_dotenv
 
 
 
-
-
 load_dotenv()
 
 key_api = os.getenv('API_KEY')
@@ -25,7 +23,7 @@ dic = pyphen.Pyphen(lang='en')
 nlp = spacy.load('en_core_web_sm')
 
 
-model = T5ForConditionalGeneration.from_pretrained("grammarly/coedit-large")
+# model = T5ForConditionalGeneration.from_pretrained("grammarly/coedit-large") для проверки грамматики
 
 
 stop_words = set(stopwords.words('english'))

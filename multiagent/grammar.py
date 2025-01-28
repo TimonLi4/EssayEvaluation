@@ -1,40 +1,46 @@
-from transformers import AutoTokenizer, T5ForConditionalGeneration, pipeline
-from nltk.tokenize import sent_tokenize
 import pandas as pd
-import language_tool_python
+import ollama
+import tiktoken
 
 
-
-tokenizer = AutoTokenizer.from_pretrained("grammarly/coedit-large")
-model = T5ForConditionalGeneration.from_pretrained("grammarly/coedit-large")
-
-
-def GrammarModel(input_text):
-    """https://huggingface.co/grammarly/coedit-large"""
-    input_ids = tokenizer(input_text, return_tensors="pt").input_ids
-    outputs = model.generate(input_ids, max_length=256)
-    return outputs
+encoding = tiktoken.encoding_for_model('gpt-4')
 
 
 def CheckGrammar(text):
-    tool = language_tool_python.LanguageTool('en-US')
-    matches = tool.check(text)
-    return len(matches), matches
+    """function checks grammar and punctuation. LLM problem"""
+    response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"just check for punctuation: {text}"}])
+    return response["message"]["content"]
 
 
-
-df = pd.read_csv(r'C:\Users\Timon\Desktop\Trainee\Automatic-Essay-Scoring-master\Processed_data.csv')
-input_text = df.iloc[2]['essay']
-
-sentences_list = sent_tokenize(input_text)
-
-
-print(CheckGrammar(input_text))
-
-# for index,i in enumerate(sentences_list):
-#     outputs = GrammarModel(i)
-#     edited_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-#     print(f'{index}: 1st edition -- ', i, '2nd version -- ',edited_text)
-#     print('same' if i == edited_text else 'False')  
+def AsessmentCreativety(text):
+    
+    response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"rate the creativity of the text from 0 to 10: {text}"}])
+    return response["message"]["content"]
 
 
+def AsessmentSturcture(text):
+    
+    response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Evaluate structurality from 0 to 10: {text}"}])
+    return response["message"]["content"]
+
+if __name__ == '__main__':
+    df = pd.read_csv(r'C:\Users\Timon4\Desktop\projectTrainee\other\Automatic-Essay-Scoring-master\Processed_data.csv')
+    text = df.iloc[0]['essay']
+    # print(text)
+    grammar = CheckGrammar(text)
+    creativety = AsessmentCreativety(text)
+    structure = AsessmentSturcture(text)
+    
+    print('--------------------------------------------------------------------------------')
+    print(grammar)
+    print('----------')
+    print(creativety)
+    print('----------')
+    print(structure)
+
+    print('--------------------------------------------------------------------------------')
+    print('\n')
+    print('\n')
+    print(f'Token Grammar = ', len(encoding.encode(text+"Just check for punctuation: ")))
+    print(f'Token AsessmentCreativety = ',len(encoding.encode(text+"Rate the creativity of the text from 0 to 10: ")))
+    print(f'Token AsessmentSturcture = ',len(encoding.encode(text+"Evaluate structurality from 0 to 10: ")))
