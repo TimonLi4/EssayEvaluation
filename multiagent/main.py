@@ -1,6 +1,6 @@
 import pandas as pd
 # import os
-from grammar import AsessmentCreativety,AsessmentSturcture,CheckGrammar
+from grammar import AsessmentCreativety,AsessmentSturcture,CheckGrammar,Information
 from dotenv import load_dotenv
 import tiktoken
 
@@ -49,18 +49,28 @@ if __name__ =='__main__':
     print("---------------------------------------------------------------------")
 
     grammar = CheckGrammar(text)
+    grade_grammar = float(grammar)
+
     creativety = AsessmentCreativety(text)
-    
+    grade_creativety = float(creativety)
+
     structure = AsessmentSturcture(text)
-    
+    grade_structure = float(structure)
+
+    information = Information(text)
+    grade_information = float(information)
+
     print("---------------------------------------------------------------------")
     print(grammar)
     print("--------------------------")
     print(creativety)
     print("--------------------------")
     print(structure)
+    print("--------------------------")
+    print(information)
     print("---------------------------------------------------------------------")
-    print('final grade',)
+    final_grade = 0.2*grade_clarity+0.2*grade_information+0.15*grade_structure+0.15*grade_grammar+0.1*grade_difsent+0.07*grade_lex_mix+0.05*grade_polarity+0.05*grade_creativety+0.03*grade_flesgKincaid+0.05*grade_numOfComplexConstructions+0.05*grade_fsw
+    print('final grade - ',final_grade)
     print("---------------------------------------------------------------------")
     print('Token Grammar = ', len(encoding.encode(text+"Just check for punctuation: ")))
     print('Token AsessmentCreativety = ',len(encoding.encode(text+"Rate the creativity of the text from 0 to 10: ")))
