@@ -1,139 +1,67 @@
-from transformers import AutoTokenizer, T5ForConditionalGeneration, pipeline
-from textblob import TextBlob
-from nltk.tokenize import word_tokenize,sent_tokenize, WordPunctTokenizer
-from nltk.corpus import stopwords
-import spacy
 import pandas as pd
-import string
-import pyphen
-import os
-
+# import os
+from grammar import AsessmentCreativety,AsessmentSturcture,CheckGrammar
 from dotenv import load_dotenv
+import tiktoken
 
+from TechnicalAspects import Tokenization,Lex_mix, DiffSent,FleschKincaid,CountComplexSentences,CountSyllabels,Tonality,NumberOfComplexConstructions,FSW,Clarity
 
 
 load_dotenv()
 
-key_api = os.getenv('API_KEY')
+encoding = tiktoken.encoding_for_model('gpt-4')
 
 
-tokenizer = AutoTokenizer.from_pretrained("grammarly/coedit-large")
-tokenizer_to_words = WordPunctTokenizer()
-dic = pyphen.Pyphen(lang='en')
-nlp = spacy.load('en_core_web_sm')
-
-
-# model = T5ForConditionalGeneration.from_pretrained("grammarly/coedit-large") для проверки грамматики
-
-
-stop_words = set(stopwords.words('english'))
-
-
-df = pd.read_csv(r'C:\Users\Timon\Desktop\Trainee\Automatic-Essay-Scoring-master\Processed_data.csv')
-
-
-def CountSyllabels(words):
-    summSyllabels = 0
-
-    for word in words:
-        hyphenated_word = dic.inserted(word)
-        summSyllabels+=len(hyphenated_word.split('-'))
-
-    return summSyllabels
-
-
-def CountComplexSentences(text):
-    doc = nlp(text)
-
-    complexCount = 0
-    for sent in doc.sents:
-        if any(token.dep_ == 'mark' for token in sent):
-            complexCount+=1
-    return complexCount
-
-
-def Tokenization(input_text):
-    token_words = tokenizer_to_words.tokenize(input_text)
-    list_word = [word for word in token_words if word not in string.punctuation]
-    dotCount = 0
-    for i in token_words:
-        if i == '.':
-            dotCount += 1
-
-    if dotCount == 0:
-        dotCount = 1
-    
-    return list_word, len(list_word),dotCount
-
-
-def DiffSent(numWords,numSentence):
-    return numWords/numSentence
-
-
-def Lex_mix(text):
-    return len(set(text))/len(text)
-
-
-def FleschKincaid(difSent,wordCount,countSyllabels):
-    return 206.835-1.015*difSent - 84.6*countSyllabels/wordCount
-
-
-def Tonality(input_text):
-    blob = TextBlob(input_text)
-    return blob
-
-
-def FSW(list_word,wordCount):
-    return sum(1 for word in list_word if word.lower() in stop_words)/wordCount
-
-# print(Tonality(input_text).sentiment)
-
-def NumberOfComplexConstructions(difSent,numOfSent):
-    return difSent/numOfSent
-
-
-def Clarity(flesgKincaid):
-    pass
+# key_api = os.getenv('API_KEY')
 
 
 
 if __name__ =='__main__':
-    # print(df.head())
-    input_text = df.iloc[2]['essay']
+    df = pd.read_csv(r'C:\Users\Timon4\Desktop\projectTrainee\other\Automatic-Essay-Scoring-master\Processed_data.csv')
+    text = df.iloc[2]['essay']
 
-    print(input_text)
-    # input_text = "This product is great, but the delivery was terrible.This product is great, but the delivery was terrible."
+    print(text)
 
-    list_word, numWords,numSentence = Tokenization(input_text)
+    list_word, numWords,numSentence = Tokenization(text)
 
+    lex_mix, grade_lex_mix = Lex_mix(list_word)
+    print('Lexical diversity - ',lex_mix, f'Grade - {grade_lex_mix}')
 
-    print('Lexical diversity - ',Lex_mix(list_word))
+    difSent,grade_difsent =DiffSent(numWords,numSentence) 
+    print('Complexity of sentences - ',difSent,f'Grade - {grade_difsent}')
 
+    flesgKincaid,grade_flesgKincaid = FleschKincaid(difSent,numWords,CountSyllabels(list_word))
+    print('Readability index - ',flesgKincaid, 'Grade - ',grade_flesgKincaid)
 
-    difSent =DiffSent(numWords,numSentence) 
-    print('Complexity of sentences - ',difSent)
+    polarity,grade_polarity = Tonality(text)
+    print('Emotional colouring - ',polarity,'Grade - ',grade_polarity )
 
+    fsw,grade_fsw = FSW(list_word,numWords)
+    print('Frequency stop word - ',fsw,'Grade - ',grade_fsw)
 
-    flesgKincaid = FleschKincaid(difSent,numWords,CountSyllabels(list_word))
-    print('Readability index - ',flesgKincaid)
+    countComplexSent = CountComplexSentences(text)
+    numOfComplexConstructions,grade_numOfComplexConstructions = NumberOfComplexConstructions(countComplexSent,numSentence)
+    print('Number of complex constructions - ',numOfComplexConstructions,'Grade - ',grade_numOfComplexConstructions)
 
+    clarity,grade_clarity = Clarity(flesgKincaid, countComplexSent)
+    print('Clarity of text - ', clarity,'Grade - ',grade_clarity)
 
-    print('Formality of style - ',)
+    print("---------------------------------------------------------------------")
 
-
-    print('Emotional colouring - ',Tonality(input_text).sentiment)
-
-
-    print('Frequency stop word - ',FSW(list_word,numWords))
-
-    countComplexSent = CountComplexSentences(input_text)
-    numOfComplexConstructions = NumberOfComplexConstructions(countComplexSent,numSentence)
-    print('Number of complex constructions - ',numOfComplexConstructions)
-
-
-    print('Clarity of text - ',flesgKincaid-numOfComplexConstructions)
-
-
-    print(key_api)
-
-
+    grammar = CheckGrammar(text)
+    creativety = AsessmentCreativety(text)
+    
+    structure = AsessmentSturcture(text)
+    
+    print("---------------------------------------------------------------------")
+    print(grammar)
+    print("--------------------------")
+    print(creativety)
+    print("--------------------------")
+    print(structure)
+    print("---------------------------------------------------------------------")
+    print('final grade',)
+    print("---------------------------------------------------------------------")
+    print('Token Grammar = ', len(encoding.encode(text+"Just check for punctuation: ")))
+    print('Token AsessmentCreativety = ',len(encoding.encode(text+"Rate the creativity of the text from 0 to 10: ")))
+    print('Token AsessmentSturcture = ',len(encoding.encode(text+"Evaluate structurality from 0 to 10: ")))
