@@ -4,8 +4,7 @@ import ollama
 
 
 def CheckGrammar(text):
-    """function checks grammar and punctuation. LLM problem"""
-    response = ollama.chat(model="mistral", messages=[{"role": "user", "content": "Rate the grammar and punctuation of the following text on a scale from 0 to 10, where 0 means full of errors and 10 means perfect. Output only the number without any additional comments:{text}"}])
+    response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Rate the grammar and punctuation of the following text on a scale from 0 to 10, where 0 means full of errors and 10 means perfect. Output only the number without any additional comments:{text}"}])
     return response["message"]["content"]
 
 
