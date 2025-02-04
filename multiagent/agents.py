@@ -4,7 +4,7 @@ from nltk.corpus import stopwords
 import spacy
 import math
 import string
-# import pandas as pd
+import pandas as pd
 import os
 from dotenv import load_dotenv
 import language_tool_python
@@ -111,7 +111,7 @@ class Punctuation(TextAnalysis):
 class StructureAgent(TextAnalysis):
     def analyze(self):
         response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Rate the level of structuredness of the following text on a scale from 0 to 10, where 0 means completely chaotic and 10 means perfectly structured. Output only the number without any additional comments:{self.text}"}])
-        return {'Structure':'','Grade':response["message"]["content"].split()[0],'Weights':0.075}
+        return {'Structure':'','Grade':response["message"]["content"].split()[0],'Weights':0.05}
 
 class ContentAgent(TextAnalysis):
     def analyze(self):
@@ -122,7 +122,7 @@ class ContentAgent(TextAnalysis):
 class CreativityAgent(TextAnalysis):
     def analyze(self):
         response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Rate the level of creativity of the following text on a scale of 0 to 10, where 0 is completely uncreative and 10 is maximally creative. Print only the number without any additional comments:{self.text}"}])
-        return {'Creativity':'','Grade': response["message"]["content"].split()[0],'Weights':0.075}
+        return {'Creativity':'','Grade': response["message"]["content"].split()[0],'Weights':0.05}
 
 
 class MAS:
@@ -150,17 +150,17 @@ class MAS:
 
 
 
-# if __name__ =='__main__':
-#     df = pd.read_csv(DATA_PATH)
-#     text = df.iloc[0]['essay']
+if __name__ =='__main__':
+    df = pd.read_csv(DATA_PATH)
+    text = df.iloc[0]['essay']
 
-#     final_score = 0
-#     mas = MAS(text)
-#     result = mas.evaluate()  
-#     for i in result:
-#         print(i)
-#         final_score+=float(i['Grade'])*i['Weights']
+    final_score = 0
+    mas = MAS(text)
+    result = mas.evaluate()  
+    for i in result:
+        print(i)
+        final_score+=float(i['Grade'])*i['Weights']
         
-#     print('Final score: ',round(final_score,2))
+    print('Final score: ',round(final_score,2))
 
 
