@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 import tiktoken
-from agents import MAS
+from agents import MAS, FeedBack, output_fromLLM, text_for_feedback_only_stat_criteria
 
 import fitz
 
@@ -33,12 +33,26 @@ if __name__ =='__main__':
     final_score = 0
     
 
-    text = extract_text_from_pdf(file_path)
+    # text = extract_text_from_pdf(file_path)
+    text = df.iloc[0]['essay']
     print(text)
     mas = MAS(text)
     results = mas.evaluate()
+    
+    statistic = pd.DataFrame(results)
+    print(statistic)
+    
+    print(FeedBack(text_for_feedback_only_stat_criteria(statistic)))
+    print(output_fromLLM(statistic))
+    
+    
     for result in results:
-        print(result)
-        final_score+=float(result['Grade'])*result['Weights']
+        grade = result['Grade']
+
+        if isinstance(grade, str) and '/' in grade:  
+            grade = grade.split('/')[0]  
+
+        final_score += float(grade) * result['Weights']
+        
     
     print('Final score: ',round(final_score,2))
