@@ -33,8 +33,8 @@ if __name__ =='__main__':
     final_score = 0
     
 
-    # text = extract_text_from_pdf(file_path)
-    text = df.iloc[0]['essay']
+    text = extract_text_from_pdf(file_path)
+    # text = df.iloc[0]['essay']
     print(text)
     mas = MAS(text)
     results = mas.evaluate()
@@ -42,8 +42,8 @@ if __name__ =='__main__':
     statistic = pd.DataFrame(results)
     print(statistic)
     
-    print(FeedBack(text_for_feedback_only_stat_criteria(statistic)))
-    print(output_fromLLM(statistic))
+    # print(FeedBack(text_for_feedback_only_stat_criteria(statistic)))
+    # print(output_fromLLM(statistic))
     
     
     for result in results:
@@ -55,4 +55,12 @@ if __name__ =='__main__':
         final_score += float(grade) * result['Weights']
         
     
+    with open('output.txt','w') as file:
+
+        file.write(statistic.to_string(index=False))
+        file.write(FeedBack(text_for_feedback_only_stat_criteria(statistic)))
+        file.write(output_fromLLM(statistic))
+        file.write(f'Final score: {round(final_score,2)}')
+
+
     print('Final score: ',round(final_score,2))
