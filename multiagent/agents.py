@@ -12,9 +12,6 @@ import ollama
 
 import pyphen
 
-
-
-
 load_dotenv()
 
 DATA_PATH = os.getenv('DATA_PATH')
@@ -104,8 +101,6 @@ class Grammar(TextAnalysis):
         return {'name':'Total Errors','value': num_errors, 'Grade': round(score, 2),'Weights':0.15}
     
 
-    
-
 class Punctuation(TextAnalysis):
     def analyze(self):
         response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Evaluate the punctuation in the given text on a scale from 0 to 10.Print the number and additional comments: {self.text}"}])
@@ -155,11 +150,8 @@ class MAS:
 def text_for_feedback_only_stat_criteria(df):
     text = ''
     for i in range(df.shape[0]):
-        
-        if pd.isna(df.iloc[i]['comments']): 
-            
+        if pd.isna(df.iloc[i]['comments']):      
             text += f"{df.iloc[i]['name']} - {df.iloc[i]['value']} | Grade - {df.iloc[i]['Grade']} \n"
-    
 
     return text
 
@@ -197,8 +189,5 @@ if __name__ =='__main__':
         # print(i)
         # print('\n')
         final_score+=float(i['Grade'])*i['Weights']
-
-    
-
 
     print('Final score: ',round(final_score,2))

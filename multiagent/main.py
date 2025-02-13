@@ -5,6 +5,7 @@ import tiktoken
 from agents import MAS, FeedBack, output_fromLLM, text_for_feedback_only_stat_criteria
 
 import fitz
+import time
 
 load_dotenv()
 
@@ -28,7 +29,8 @@ def extract_text_from_pdf(file_path):
 
 
 if __name__ =='__main__':
-    df = pd.read_csv(DATA_PATH)
+    start_time = time.time()
+    # df = pd.read_csv(DATA_PATH)
     text = ''
     final_score = 0
     
@@ -64,3 +66,4 @@ if __name__ =='__main__':
 
 
     print('Final score: ',round(final_score,2))
+    print(time.time()-start_time)
