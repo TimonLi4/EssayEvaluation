@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import tiktoken
 from agents import MAS, FeedBack, output_fromLLM, text_for_feedback_only_stat_criteria
+from relevance import Relevance, Create_LDA,clean
 
 import fitz
 import time
@@ -12,6 +13,7 @@ load_dotenv()
 
 DATA_PATH = os.getenv('DATA_PATH')
 file_path = os.getenv('FILE_PATH')
+file_essay = os.getenv('file_essay')
 encoding = tiktoken.encoding_for_model('gpt-4')
 
 
@@ -30,14 +32,27 @@ def extract_text_from_pdf(file_path):
 
 if __name__ =='__main__':
     start_time = time.time()
-    # df = pd.read_csv(DATA_PATH)
+    df = pd.read_csv(DATA_PATH)
     text = ''
     final_score = 0
+    dictionary, ldamodel = Create_LDA(file_essay)
     
 
-    text = extract_text_from_pdf(file_path)
-    # text = df.iloc[0]['essay']
+    # text = extract_text_from_pdf(file_path)
+    text = df.iloc[0]['essay']
     print(text)
+
+    new_text_clean = clean(text)
+    new_text_tokens = new_text_clean.split()  # Преобразуем строку в список токен
+
+    # Преобразуем новый текст в bag-of-words
+    new_bow = dictionary.doc2bow(new_text_tokens)
+
+    # Получаем распределение тем для нового текста
+    new_text_topics = ldamodel.get_document_topics(new_bow)
+
+
+
     mas = MAS(text)
     results = mas.evaluate()
     
@@ -57,8 +72,8 @@ if __name__ =='__main__':
         final_score += float(grade) * result['Weights']
         
     
-    with open('output.txt','w') as file:
-
+    with open('output.txt','w',encoding="utf-8") as file:
+        file.write(f'Relevance: {Relevance(new_text_topics)}\n\n\n')
         file.write(statistic.to_string(index=False))
         file.write(FeedBack(text_for_feedback_only_stat_criteria(statistic)))
         file.write(output_fromLLM(statistic))

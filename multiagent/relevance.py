@@ -57,7 +57,7 @@ def Relevance(new_text_topics):
     else:
         print("Текст не соответствует основным темам (это, возможно, статья).")
 
-    print('\n',new_text_topics)
+    return f"{(average_probability+max_probability)/2} --- {max_probability}"
 
 
 def Create_LDA(file_essay):
@@ -88,8 +88,25 @@ if __name__ == '__main__':
     # Обработка нового текста
     
     new_text = pd.read_csv(data_path)['essay'][0] # file_essay data_path
-    # new_text = 
-    new_text = extract_text_from_pdf(file_path)
+    new_text = """In recent years, online learning has become an essential part of the modern education system. With the rapid development of digital technologies, this form of education offers numerous advantages for both school students and university learners. In this article, we will explore the key benefits of online learning and how it can improve the educational experience.
+
+1. Flexibility and Accessibility
+One of the primary advantages of online learning is its flexibility. Students can choose the most convenient time for their studies and adjust their schedule to meet personal needs. This is especially valuable for those who balance education with work or family commitments.
+
+Moreover, online learning provides access to education for individuals living in remote areas with limited educational opportunities. With just an internet connection, anyone can enroll in quality courses offered by institutions worldwide.
+
+2. Personalized Learning Experience
+Online platforms enable students to tailor their learning process according to their individual preferences. Learners can set their own pace, revisit complex topics, or skip over material they’ve already mastered. This personalized approach ensures a deeper understanding of the subject.
+
+3. Cost and Time Efficiency
+Traditional education often involves additional expenses for transportation, accommodation, and meals. Online learning significantly reduces these costs. Students can also save time on commuting, allowing them to focus on additional projects or personal development.
+
+4. A Wide Range of Courses
+Today, there is an abundance of online courses covering virtually every field — from programming and design to psychology and languages. This variety enables students to explore new interests and acquire skills that are in demand in the modern job market.
+
+Conclusion
+Online learning is a transformative step forward in education, offering students greater flexibility and new opportunities. However, success in this format requires self-motivation and discipline. While online learning is a powerful tool, it should complement traditional education rather than completely replace it."""
+    # new_text = extract_text_from_pdf(file_path)
     print(new_text)
     new_text_clean = clean(new_text)
     new_text_tokens = new_text_clean.split()  # Преобразуем строку в список токен
