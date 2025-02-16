@@ -12,10 +12,7 @@ import ollama
 
 import pyphen
 
-
 from together import Together
-
-
 
 load_dotenv()
 
@@ -108,29 +105,51 @@ class Grammar(TextAnalysis):
         return {'name':'Total Errors','value': num_errors, 'Grade': round(score, 2),'Weights':0.15}
     
 
+# class Punctuation(TextAnalysis):
+#     def analyze(self):
+
+#         response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Evaluate the punctuation in the given text on a scale from 0 to 10. First, print the number, followed by additional comments. Text: {self.text}"}],)
+
+#         # response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Evaluate the punctuation in the given text on a scale from 0 to 10.Print the number and additional comments: {self.text}"}])
+#         return {'name':'Punctuation','value':'','Grade':response.choices[0].message.content.split()[0],'Weights':0.05,'comments':response.choices[0].message.content}
+
+# class StructureAgent(TextAnalysis):
+#     def analyze(self):
+#         response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Rate the level of structuredness of the following text on a scale from 0 to 10, where 0 means completely chaotic and 10 means perfectly structured. First, print the number, followed by additional comments. text:{self.text}"}])
+#         return {'name':'Structure','value':'','Grade':response.choices[0].message.content.split()[0],'Weights':0.05,'comments':response.choices[0].message.content}
+
+# class ContentAgent(TextAnalysis):
+#     def analyze(self):
+#         response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Rate the level of informativeness of the following text on a scale from 0 to 10, where 0 means completely uninformative and 10 means highly informative. First, print the number, followed by additional comments. Text:{self.text}"}])
+#         return {'name':'Information','value':'','Grade': response.choices[0].message.content.split()[0],'Weights':0.05,'comments':response.choices[0].message.content}
+
+
+# class CreativityAgent(TextAnalysis):
+#     def analyze(self):
+#         response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Rate the level of creativity of the following text on a scale of 0 to 10, where 0 is completely uncreative and 10 is maximally creative. First, print the number, followed by additional comments. Text:{self.text}"}])
+#         return {'name':'Creativity','value':'','Grade': response.choices[0].message.content.split()[0],'Weights':0.05, 'comments':response.choices[0].message.content}
+
+###################################################################
 class Punctuation(TextAnalysis):
     def analyze(self):
-
-        response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Evaluate the punctuation in the given text on a scale from 0 to 10. First, print the number, followed by additional comments. Text: {self.text}"}],)
-
-        # response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Evaluate the punctuation in the given text on a scale from 0 to 10.Print the number and additional comments: {self.text}"}])
-        return {'name':'Punctuation','value':'','Grade':response.choices[0].message.content.split()[0],'Weights':0.05,'comments':response.choices[0].message.content}
+        response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Evaluate the punctuation in the given text on a scale from 0 to 10.Print the number and additional comments: {self.text}"}])
+        return {'name':'Punctuation','value':'','Grade':response["message"]["content"].split()[0],'Weights':0.05,'comments':response["message"]["content"]}
 
 class StructureAgent(TextAnalysis):
     def analyze(self):
-        response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Rate the level of structuredness of the following text on a scale from 0 to 10, where 0 means completely chaotic and 10 means perfectly structured. First, print the number, followed by additional comments. text:{self.text}"}])
-        return {'name':'Structure','value':'','Grade':response.choices[0].message.content.split()[0],'Weights':0.05,'comments':response.choices[0].message.content}
+        response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Rate the level of structuredness of the following text on a scale from 0 to 10, where 0 means completely chaotic and 10 means perfectly structured. Print the number and additional comments:{self.text}"}])
+        return {'name':'Structure','value':'','Grade':response["message"]["content"].split()[0],'Weights':0.05,'comments':response["message"]["content"]}
 
 class ContentAgent(TextAnalysis):
     def analyze(self):
-        response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Rate the level of informativeness of the following text on a scale from 0 to 10, where 0 means completely uninformative and 10 means highly informative. First, print the number, followed by additional comments. Text:{self.text}"}])
-        return {'name':'Information','value':'','Grade': response.choices[0].message.content.split()[0],'Weights':0.05,'comments':response.choices[0].message.content}
+        response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Rate the level of informativeness of the following text on a scale from 0 to 10, where 0 means completely uninformative and 10 means highly informative. Print the number and additional comments:{self.text}"}])
+        return {'name':'Information','value':'','Grade': response["message"]["content"].split()[0],'Weights':0.05,'comments':response["message"]["content"]}
 
 
 class CreativityAgent(TextAnalysis):
     def analyze(self):
-        response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Rate the level of creativity of the following text on a scale of 0 to 10, where 0 is completely uncreative and 10 is maximally creative. First, print the number, followed by additional comments. Text:{self.text}"}])
-        return {'name':'Creativity','value':'','Grade': response.choices[0].message.content.split()[0],'Weights':0.05, 'comments':response.choices[0].message.content}
+        response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Rate the level of creativity of the following text on a scale of 0 to 10, where 0 is completely uncreative and 10 is maximally creative. Print the number and additional comments:{self.text}"}])
+        return {'name':'Creativity','value':'','Grade': response["message"]["content"].split()[0],'Weights':0.05, 'comments':response["message"]["content"]}
 
 
 class MAS:
@@ -157,15 +176,8 @@ class MAS:
         return results
 
 
-def text_for_feedback_only_stat_criteria(df):
-    text = ''
-    for i in range(df.shape[0]):
-        if pd.isna(df.iloc[i]['comments']):      
-            text += f"{df.iloc[i]['name']} - {df.iloc[i]['value']} | Grade - {df.iloc[i]['Grade']} \n"
 
-    return text
-
-def output_fromLLM(df):
+def Feedback_fromLLM(df):
     text = ''
     for i in range(df.shape[0]):
         
@@ -175,11 +187,20 @@ def output_fromLLM(df):
     return text
 
 
-def FeedBack(metrics):
-    response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Based on the provided text metrics and grades, generate detailed feedback on the text's quality. Analyze each metric and give an evaluation of the text's strengths and areas for improvement. Focus on lexical diversity, sentence complexity, readability, emotional coloring, and clarity. Conclude with overall feedback on the text's readability, target audience suitability, and possible improvements. Metrics: {metrics}"}])
-    return response.choices[0].message.content
+def FeedBack_stat_criteria(df):
+    text = ''
+    for i in range(df.shape[0]):
+        if pd.isna(df.iloc[i]['comments']):      
+            text += f"{df.iloc[i]['name']} - {df.iloc[i]['value']} | Grade - {df.iloc[i]['Grade']} \n"
+
+    response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Based on the provided text metrics and grades, generate detailed feedback on the text's quality. Analyze each metric and give an evaluation of the text's strengths and areas for improvement. Focus on lexical diversity, sentence complexity, readability, emotional coloring, and clarity. Conclude with overall feedback on the text's readability, target audience suitability, and possible improvements. Metrics: {text}"}])
+    return response["message"]["content"]
 
 
+############################################
+# def FeedBack(metrics):
+#     response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Based on the provided text metrics and grades, generate detailed feedback on the text's quality. Analyze each metric and give an evaluation of the text's strengths and areas for improvement. Focus on lexical diversity, sentence complexity, readability, emotional coloring, and clarity. Conclude with overall feedback on the text's readability, target audience suitability, and possible improvements. Metrics: {metrics}"}])
+#     return response.choices[0].message.content
 
 if __name__ =='__main__':
     df = pd.read_csv(DATA_PATH)
@@ -192,8 +213,8 @@ if __name__ =='__main__':
     statistic = pd.DataFrame(result)
     
     # print(feedback)
-    print(text_for_feedback_only_stat_criteria(statistic))
-    print(output_fromLLM(statistic))
+    print(FeedBack_stat_criteria(statistic))
+    print(Feedback_fromLLM(statistic))
     # print(FeedBack(text_for_feedback_only_stat_criteria(statistic)))
 
     for i in result:

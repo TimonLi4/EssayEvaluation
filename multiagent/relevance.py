@@ -14,7 +14,7 @@ load_dotenv()
 file_essay = os.getenv('file_essay')
 file_path = os.getenv('FILE_PATH')
 data_path = os.getenv('DATA_PATH')
-
+file_article = os.getenv('FILE_ARTICLE')
 
 
 stop = set(stopwords.words('english'))
@@ -41,29 +41,31 @@ def extract_text_from_pdf(file_path):
 
 
 def Relevance(new_text_topics):
+    print([prob for _,prob in new_text_topics])
+    # print(sum(prob for _, prob in new_text_topics))
+    # print('\n\n')
     average_probability = sum(prob for _, prob in new_text_topics) / len(new_text_topics)
     max_probability = max(prob for _, prob in new_text_topics)
+    min_probability = min(prob for _, prob in new_text_topics)
 
-    # threshold = (average_probability + max_probability) / 2
-    # print(f"Пороговое значение: {threshold:.2f}")
+    answer = ''
 
-    # sum_new_text = sum(prob for _, prob in new_text_topics)
-    # print(sum_new_text)
+    print((min_probability+max_probability)/2 - average_probability, min_probability)
 
-    print((average_probability+max_probability)/2, max_probability)
-
-    if (average_probability+max_probability)/2 >= max_probability:
-        print("Текст соответствует основным темам (это, вероятно, эссе).")
+    if ((min_probability+max_probability)/2 - average_probability) > min_probability:
+        print("article")
+        answer = 'article'
     else:
-        print("Текст не соответствует основным темам (это, возможно, статья).")
+        print("essay")
+        answer = 'essay'
 
-    return f"{(average_probability+max_probability)/2} --- {max_probability}"
+    return f"{(min_probability+max_probability)/2 - average_probability, min_probability}", answer
 
 
-def Create_LDA(file_essay):
-    if os.path.exists("lda_model.model") and os.path.exists("dictionary.dict"):
-        ldamodel = LdaModel.load("lda_model.model")
-        dictionary = Dictionary.load("dictionary.dict")
+def Create_LDA_essay(file_essay):
+    if os.path.exists("lda_model_essay\lda_model.model") and os.path.exists("lda_model_essay\dictionary.dict"):
+        ldamodel = LdaModel.load("lda_model_essay\lda_model.model")
+        dictionary = Dictionary.load("lda_model_essay\dictionary.dict")
     else:
         
         df = pd.read_csv(file_essay)
@@ -74,59 +76,86 @@ def Create_LDA(file_essay):
         
         ldamodel = LdaModel(doc_term_matrix, num_topics=6, id2word=dictionary, passes=50)
         
-        ldamodel.save("lda_model.model")
-        dictionary.save("dictionary.dict")
+        ldamodel.save("lda_model_essay\lda_model.model")
+        dictionary.save("lda_model_essay\dictionary.dict")
         
     
     return dictionary, ldamodel
 
+def Create_LDA_article(file_article):
+    model_path = os.path.join("lda_model_article", "lda_model.model")
+    dict_path = os.path.join("lda_model_article", "dictionary.dict")
+
+    if os.path.exists(model_path) and os.path.exists(dict_path):
+        ldamodel = LdaModel.load(model_path)
+        dictionary = Dictionary.load(dict_path)
+    else:
+        
+        os.makedirs("lda_model_article", exist_ok=True)
+
+        df = pd.read_csv(file_article)
+        doc_clean = [clean(doc).split() for doc in df['text']]
+
+        dictionary = Dictionary(doc_clean)
+        doc_term_matrix = [dictionary.doc2bow(doc) for doc in doc_clean]
+
+        ldamodel = LdaModel(doc_term_matrix, num_topics=8, id2word=dictionary, passes=50)
+
+        ldamodel.save(model_path)
+        dictionary.save(dict_path)
+    
+    return  dictionary,ldamodel
+
+
+# def classify_text(text, lda_essay, dictionary_essay, lda_article, dictionary_article):
+#     # Очистка текста
+#     text_clean = clean(text).split()
+
+#     # Преобразование текста в BoW
+#     bow_essay = dictionary_essay.doc2bow(text_clean)
+#     bow_article = dictionary_article.doc2bow(text_clean)
+
+#     # Получаем распределение тем
+#     topics_essay = lda_essay.get_document_topics(bow_essay)
+#     topics_article = lda_article.get_document_topics(bow_article)
+
+#     # Суммируем вероятности тем
+#     score_essay = [prob for _, prob in topics_essay]
+#     score_article = [prob for _, prob in topics_article]
+
+#     print(f"Score Essay: {score_essay} ->  {sum(score_essay)/len(topics_essay)} \nScore Article: {score_article} -> {sum(score_article)/len(topics_article)}")
+
+#     # Классификация
+#     # if score_essay > score_article:
+#     #     return "Эссе"
+#     # else:
+#     #     return "Статья"
+
 
 if __name__ == '__main__':
 
-    dictionary, ldamodel = Create_LDA(file_essay)
+    dictionary_essay, ldamodel_essay = Create_LDA_essay(file_essay)
+    dictionary_article, ldamodel_article = Create_LDA_article(file_article)
+
 
     # Обработка нового текста
+    # data_path = r'C:\Users\Timon4\Desktop\projectTrainee\other\ARTICLE\bbc_news_text_complexity_summarization.csv'
+    new_text = pd.read_csv(data_path)['essay'][1] # file_essay data_path
     
-    new_text = pd.read_csv(data_path)['essay'][0] # file_essay data_path
-    new_text = """In recent years, online learning has become an essential part of the modern education system. With the rapid development of digital technologies, this form of education offers numerous advantages for both school students and university learners. In this article, we will explore the key benefits of online learning and how it can improve the educational experience.
-
-1. Flexibility and Accessibility
-One of the primary advantages of online learning is its flexibility. Students can choose the most convenient time for their studies and adjust their schedule to meet personal needs. This is especially valuable for those who balance education with work or family commitments.
-
-Moreover, online learning provides access to education for individuals living in remote areas with limited educational opportunities. With just an internet connection, anyone can enroll in quality courses offered by institutions worldwide.
-
-2. Personalized Learning Experience
-Online platforms enable students to tailor their learning process according to their individual preferences. Learners can set their own pace, revisit complex topics, or skip over material they’ve already mastered. This personalized approach ensures a deeper understanding of the subject.
-
-3. Cost and Time Efficiency
-Traditional education often involves additional expenses for transportation, accommodation, and meals. Online learning significantly reduces these costs. Students can also save time on commuting, allowing them to focus on additional projects or personal development.
-
-4. A Wide Range of Courses
-Today, there is an abundance of online courses covering virtually every field — from programming and design to psychology and languages. This variety enables students to explore new interests and acquire skills that are in demand in the modern job market.
-
-Conclusion
-Online learning is a transformative step forward in education, offering students greater flexibility and new opportunities. However, success in this format requires self-motivation and discipline. While online learning is a powerful tool, it should complement traditional education rather than completely replace it."""
-    # new_text = extract_text_from_pdf(file_path)
+    # new_text = """"""
+    new_text = extract_text_from_pdf(file_path)
     print(new_text)
+
+
     new_text_clean = clean(new_text)
-    new_text_tokens = new_text_clean.split()  # Преобразуем строку в список токен
+    new_text_tokens = new_text_clean.split() 
 
-    # Преобразуем новый текст в bag-of-words
-    new_bow = dictionary.doc2bow(new_text_tokens)
+    
+    new_bow = dictionary_essay.doc2bow(new_text_tokens)
 
-    # Получаем распределение тем для нового текста
-    new_text_topics = ldamodel.get_document_topics(new_bow)
+    new_text_topics = ldamodel_essay.get_document_topics(new_bow)
     
     Relevance(new_text_topics)
-    # threshold = 0.2  # Установите порог вероятности для релевантности
-    # print("\nРаспределение тем для нового текста:")
-    # is_relevant = False
-    # for topic_id, prob in new_text_topics:
-    #     print(f"Тема {topic_id + 1} с вероятностью {prob:.2f}")
-    #     if prob > threshold:
-    #         is_relevant = True
-    
-    # if is_relevant:
-    #     print("\nНовый текст релевантен основным темам.")
-    # else:
-    #     print("\nНовый текст нерелевантен основным темам.")
+
+
+    # classify_text(new_text, ldamodel_essay, dictionary_essay, ldamodel_article, dictionary_article)

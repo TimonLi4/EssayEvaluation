@@ -2,8 +2,8 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 import tiktoken
-from agents import MAS, FeedBack, output_fromLLM, text_for_feedback_only_stat_criteria
-from relevance import Relevance, Create_LDA,clean
+from agents import MAS, FeedBack, Feedback_fromLLM, text_for_feedback_only_stat_criteria
+from relevance import Relevance, Create_LDA_essay,clean
 
 import fitz
 import time
@@ -35,11 +35,13 @@ if __name__ =='__main__':
     df = pd.read_csv(DATA_PATH)
     text = ''
     final_score = 0
-    dictionary, ldamodel = Create_LDA(file_essay)
+    dictionary, ldamodel = Create_LDA_essay(file_essay)
     
 
-    # text = extract_text_from_pdf(file_path)
-    text = df.iloc[0]['essay']
+    text = extract_text_from_pdf(file_path)
+    # text = df.iloc[0]['essay']
+
+    # text = df.iloc[1]['text']
     print(text)
 
     new_text_clean = clean(text)
@@ -59,13 +61,10 @@ if __name__ =='__main__':
     statistic = pd.DataFrame(results)
     print(statistic)
     
-    # print(FeedBack(text_for_feedback_only_stat_criteria(statistic)))
-    # print(output_fromLLM(statistic))
-    
-    
     for result in results:
         grade = result['Grade']
 
+        #######################
         if isinstance(grade, str) and '/' in grade:  
             grade = grade.split('/')[0]  
 
@@ -76,7 +75,7 @@ if __name__ =='__main__':
         file.write(f'Relevance: {Relevance(new_text_topics)}\n\n\n')
         file.write(statistic.to_string(index=False))
         file.write(FeedBack(text_for_feedback_only_stat_criteria(statistic)))
-        file.write(output_fromLLM(statistic))
+        file.write(Feedback_fromLLM(statistic))
         file.write(f'Final score: {round(final_score,2)}')
 
 
