@@ -3,11 +3,14 @@ from gensim.corpora.dictionary import Dictionary
 from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
 import string
+import re
 
 import os
 from dotenv import load_dotenv
 import pandas as pd
 import fitz
+
+import time
 
 load_dotenv()
 
@@ -17,16 +20,19 @@ data_path = os.getenv('DATA_PATH')
 file_article = os.getenv('FILE_ARTICLE')
 
 
-stop = set(stopwords.words('english'))
+stop_words = set(stopwords.words('english'))
 exclude = set(string.punctuation)
 lemma = WordNetLemmatizer()
 
 
 def clean(doc):
-    stop_free = " ".join([i for i in doc.lower().split() if i not in stop])
-    punc_free = ''.join(ch for ch in stop_free if ch not in exclude)
-    normalized = " ".join(lemma.lemmatize(word) for word in punc_free.split())
-    return normalized
+    doc = doc.lower()  # Приведение к нижнему регистру
+    doc = re.sub(r'\d+', '', doc)  # Удаление чисел
+    doc = " ".join(word for word in doc.split() if word not in stop_words)  # Удаление стоп-слов
+    doc = ''.join(ch for ch in doc if ch not in exclude)  # Удаление пунктуации
+    doc = " ".join(lemma.lemmatize(word, pos='v') for word in doc.split())  # Лемматизация (с учётом глаголов)
+    doc = re.sub(r'\s+', ' ', doc).strip()  # Удаление лишних пробелов
+    return doc
 
 
 def extract_text_from_pdf(file_path):
@@ -61,6 +67,25 @@ def Relevance(new_text_topics):
 
     return f"{(min_probability+max_probability)/2 - average_probability, min_probability}", answer
 
+
+def Check_stat(new_text_topics):
+    # print([prob for _,prob in new_text_topics])
+    average_probability = sum(prob for _, prob in new_text_topics) / len(new_text_topics)
+    max_probability = max(prob for _, prob in new_text_topics)
+    min_probability = min(prob for _, prob in new_text_topics)
+
+    # print(f'avg- {average_probability}, max- {max_probability}, min- {min_probability}')
+
+    # print((min_probability+max_probability)/2 - average_probability)
+
+    value = (min_probability+max_probability)/2 - average_probability
+
+    # if  value > min_probability:
+    #     print("answer - article")
+    # else:
+    #     print("answer - essay")
+        
+    return value
 
 def Create_LDA_essay(file_essay):
     if os.path.exists("lda_model_essay\lda_model.model") and os.path.exists("lda_model_essay\dictionary.dict"):
@@ -131,31 +156,94 @@ def Create_LDA_article(file_article):
 #     # else:
 #     #     return "Статья"
 
+def Score_all(new_text):
+    new_text_clean = clean(new_text)
+    new_text_tokens = new_text_clean.split() 
+    
+    new_bow = dictionary_essay.doc2bow(new_text_tokens)
+
+    new_text_topics_essay = ldamodel_essay.get_document_topics(new_bow)
+
+    new_bow = dictionary_article.doc2bow(new_text_tokens)
+
+    new_text_topics_article = ldamodel_article.get_document_topics(new_bow)
+    
+    # print('essay---------------')
+    value1 = Check_stat(new_text_topics_essay)
+    # print('article-------------')
+    value2 = Check_stat(new_text_topics_article)
+
+    
+
+    return value1,value2
+
+
+
 
 if __name__ == '__main__':
-
+    start_time = time.time()
     dictionary_essay, ldamodel_essay = Create_LDA_essay(file_essay)
     dictionary_article, ldamodel_article = Create_LDA_article(file_article)
 
 
-    # Обработка нового текста
     # data_path = r'C:\Users\Timon4\Desktop\projectTrainee\other\ARTICLE\bbc_news_text_complexity_summarization.csv'
-    new_text = pd.read_csv(data_path)['essay'][1] # file_essay data_path
+    new_text = pd.read_csv(data_path)['essay'][7] # file_essay data_path
     
     # new_text = """"""
-    new_text = extract_text_from_pdf(file_path)
-    print(new_text)
+    # new_text = extract_text_from_pdf(file_path)
+    # print(new_text)
+
+    print(len(pd.read_csv(data_path)['essay']))
+    count_essay = 0
+    count_Article = 0
+    
+
+    with open('score.txt','w') as file:       
+        for i in range(len(pd.read_csv(data_path)['essay'])): # len(pd.read_csv(data_path)['essay'])
+            new_text = pd.read_csv(data_path)['essay'][i]
+            answer = ''
+            value1,value2=Score_all(new_text)
+            if i%100==0:
+                print(i)
+
+            if value1>value2:
+                # print('final -- article')
+                count_Article+=1
+                # article_list.append((value1,value2))
+                file.write(f'{[value1,value2,]}\n')
+            else:
+                count_essay+=1
+                # print('final -- essay')
+        file.write(f'CountArticle - {count_Article}, CountEssay - {count_essay}, Total number - {len(pd.read_csv(data_path)["essay"])}')
+
+    print('All - ',len(pd.read_csv(data_path)['essay']))
+    print('CountArticle - ', count_Article,'CountEssay - ', count_essay)
+    
+    print(time.time()-start_time)
 
 
-    new_text_clean = clean(new_text)
-    new_text_tokens = new_text_clean.split() 
+    # new_text_clean = clean(new_text)
+    # new_text_tokens = new_text_clean.split() 
 
     
-    new_bow = dictionary_essay.doc2bow(new_text_tokens)
+    # new_bow = dictionary_essay.doc2bow(new_text_tokens)
 
-    new_text_topics = ldamodel_essay.get_document_topics(new_bow)
+    # new_text_topics_essay = ldamodel_essay.get_document_topics(new_bow)
+
+    # new_bow = dictionary_article.doc2bow(new_text_tokens)
+
+    # new_text_topics_article = ldamodel_article.get_document_topics(new_bow)
     
-    Relevance(new_text_topics)
+    # print('essay---------------')
+    # value1 = Check_stat(new_text_topics_essay)
+    # print('article-------------')
+    # value2 = Check_stat(new_text_topics_article)
 
+    # print(value1,value2)
+
+    # if value1>value2:
+    #     print('final -- article')
+    # else:
+    #     print('final -- essay')
 
     # classify_text(new_text, ldamodel_essay, dictionary_essay, ldamodel_article, dictionary_article)
