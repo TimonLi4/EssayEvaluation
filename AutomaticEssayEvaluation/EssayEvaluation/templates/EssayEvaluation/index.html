@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{%static 'EssayEvaluation/css/index.css'%}">
+    <title>EssayEvaluation</title>
+    <style>
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Select a file</h2>
+         <form action="{%url 'stat' %}" method="post" enctype="multipart/form-data"> <!-- stat -->
+            {% csrf_token %}
+            <input type="file" name="file" id="file">
+            <br>
+            <button type="submit">Load</button>
+        </form>
+    </div>
+</body>
+</html>

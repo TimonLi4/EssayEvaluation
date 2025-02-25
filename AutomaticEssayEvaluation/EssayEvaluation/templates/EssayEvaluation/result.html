@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{%static 'EssayEvaluation/css/result.css'%}">
+    <title>Result</title>
+</head>
+<body>
+    <div class="container">
+        <div class="text-area">
+            <h2>Text</h2>
+            <p>{{text|linebreaks}}</p>
+        </div>
+        <div class="evaluation">
+            <h2>Text evaluation</h2>
+            {{ statistic|safe }}
+            <p>*Relevance by staticmethod: {{relevance_my}}</p>
+            <p>Relevance by LLM: {{relevance_by_LLM}}</p>
+            <p>Comments:</p>
+            <p>{{feedback_stat_criteria|linebreaks}}</p>
+            <p>{{feedback_LLM|linebreaks}}</p>
+        </div>
+    </div>
+</body>
+</html>
