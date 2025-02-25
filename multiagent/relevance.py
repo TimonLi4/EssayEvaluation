@@ -69,22 +69,15 @@ def Relevance(new_text_topics):
 
 
 def Check_stat(new_text_topics):
-    # print([prob for _,prob in new_text_topics])
+    print([prob for _,prob in new_text_topics])
     average_probability = sum(prob for _, prob in new_text_topics) / len(new_text_topics)
     max_probability = max(prob for _, prob in new_text_topics)
     min_probability = min(prob for _, prob in new_text_topics)
 
-    # print(f'avg- {average_probability}, max- {max_probability}, min- {min_probability}')
-
-    # print((min_probability+max_probability)/2 - average_probability)
-
+    print(f'avg- {average_probability}, max- {max_probability}, min- {min_probability}')
+    
     value = (min_probability+max_probability)/2 - average_probability
 
-    # if  value > min_probability:
-    #     print("answer - article")
-    # else:
-    #     print("answer - essay")
-        
     return value
 
 def Create_LDA_essay(file_essay):
@@ -187,63 +180,23 @@ if __name__ == '__main__':
 
 
     # data_path = r'C:\Users\Timon4\Desktop\projectTrainee\other\ARTICLE\bbc_news_text_complexity_summarization.csv'
-    new_text = pd.read_csv(data_path)['essay'][7] # file_essay data_path
     
-    # new_text = """"""
-    # new_text = extract_text_from_pdf(file_path)
-    # print(new_text)
+    # new_text = pd.read_csv(data_path)['essay'][7] # file_essay data_path
 
-    print(len(pd.read_csv(data_path)['essay']))
+
+    new_text = """"""
+    new_text = extract_text_from_pdf(file_path)
+    print(new_text)
+
+    
+    value1,value2 = Score_all(new_text)
+
+    print(value1,value2)
+
+    if value1>value2:
+        print('final -- article')
+    else:
+        print('final -- essay')
+
+    count_article = 0
     count_essay = 0
-    count_Article = 0
-    
-
-    with open('score.txt','w') as file:       
-        for i in range(len(pd.read_csv(data_path)['essay'])): # len(pd.read_csv(data_path)['essay'])
-            new_text = pd.read_csv(data_path)['essay'][i]
-            answer = ''
-            value1,value2=Score_all(new_text)
-            if i%100==0:
-                print(i)
-
-            if value1>value2:
-                # print('final -- article')
-                count_Article+=1
-                # article_list.append((value1,value2))
-                file.write(f'{[value1,value2,]}\n')
-            else:
-                count_essay+=1
-                # print('final -- essay')
-        file.write(f'CountArticle - {count_Article}, CountEssay - {count_essay}, Total number - {len(pd.read_csv(data_path)["essay"])}')
-
-    print('All - ',len(pd.read_csv(data_path)['essay']))
-    print('CountArticle - ', count_Article,'CountEssay - ', count_essay)
-    
-    print(time.time()-start_time)
-
-
-    # new_text_clean = clean(new_text)
-    # new_text_tokens = new_text_clean.split() 
-
-    
-    # new_bow = dictionary_essay.doc2bow(new_text_tokens)
-
-    # new_text_topics_essay = ldamodel_essay.get_document_topics(new_bow)
-
-    # new_bow = dictionary_article.doc2bow(new_text_tokens)
-
-    # new_text_topics_article = ldamodel_article.get_document_topics(new_bow)
-    
-    # print('essay---------------')
-    # value1 = Check_stat(new_text_topics_essay)
-    # print('article-------------')
-    # value2 = Check_stat(new_text_topics_article)
-
-    # print(value1,value2)
-
-    # if value1>value2:
-    #     print('final -- article')
-    # else:
-    #     print('final -- essay')
-
-    # classify_text(new_text, ldamodel_essay, dictionary_essay, ldamodel_article, dictionary_article)
