@@ -1,3 +1,4 @@
+import fitz
 from textblob import TextBlob
 from nltk.tokenize import WordPunctTokenizer
 from nltk.corpus import stopwords
@@ -9,6 +10,7 @@ import os
 from dotenv import load_dotenv
 import language_tool_python
 import ollama
+import tiktoken
 
 import pyphen
 
@@ -19,11 +21,16 @@ load_dotenv()
 DATA_PATH = os.getenv('DATA_PATH')
 API_KEY = os.getenv('API_KEY')
 client = Together(api_key=API_KEY)
+file_path = os.getenv('FILE_PATH')
+
 
 tokenizer_to_words = WordPunctTokenizer()
 dic = pyphen.Pyphen(lang='en')
 nlp = spacy.load('en_core_web_sm')
 stop_words = set(stopwords.words('english'))
+
+endcoding = tiktoken.encoding_for_model('gpt-4')
+
 
 class TextAnalysis:
     def __init__(self, text):
@@ -129,6 +136,10 @@ class Grammar(TextAnalysis):
 #         response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Rate the level of creativity of the following text on a scale of 0 to 10, where 0 is completely uncreative and 10 is maximally creative. First, print the number, followed by additional comments. Text:{self.text}"}])
 #         return {'name':'Creativity','value':'','Grade': response.choices[0].message.content.split()[0],'Weights':0.05, 'comments':response.choices[0].message.content}
 
+# def Relevance(text):
+#     response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Analyze the following text and determine whether it is an essay or an article. An essay typically contains personal reflections, a subjective point of view, and an individual writing style, whereas an article aims for objectivity, structure, and the use of facts. Answer with one word: 'essay' or 'article'.  Text:{text}"}])
+#     return response.choices[0].message.content
+
 ###################################################################
 class Punctuation(TextAnalysis):
     def analyze(self):
@@ -151,6 +162,9 @@ class CreativityAgent(TextAnalysis):
         response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Rate the level of creativity of the following text on a scale of 0 to 10, where 0 is completely uncreative and 10 is maximally creative. Print the number and additional comments:{self.text}"}])
         return {'name':'Creativity','value':'','Grade': response["message"]["content"].split()[0],'Weights':0.05, 'comments':response["message"]["content"]}
 
+def Relevance(text):
+    response = ollama.chat(model="mistral", messages=[{"role": "user", "content": f"Analyze the following text and determine whether it is an essay or an article. An essay typically contains personal reflections, a subjective point of view, and an individual writing style, whereas an article aims for objectivity, structure, and the use of facts. Answer with one word: 'essay' or 'article'. Text: {text}"}])
+    return response["message"]["content"]
 
 class MAS:
     def __init__(self, text):
@@ -182,7 +196,7 @@ def Feedback_fromLLM(df):
     for i in range(df.shape[0]):
         
         if not pd.isna(df.iloc[i]['comments']): 
-            text+= f"{df.iloc[i]['name']}| Comments - {df.iloc[i]['comments']} \n\n\n"
+            text+= f"{df.iloc[i]['name']} | {df.iloc[i]['comments']} \n\n\n"
     
     return text
 
@@ -202,10 +216,28 @@ def FeedBack_stat_criteria(df):
 #     response = client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo", messages=[{"role": "user", "content": f"Based on the provided text metrics and grades, generate detailed feedback on the text's quality. Analyze each metric and give an evaluation of the text's strengths and areas for improvement. Focus on lexical diversity, sentence complexity, readability, emotional coloring, and clarity. Conclude with overall feedback on the text's readability, target audience suitability, and possible improvements. Metrics: {metrics}"}])
 #     return response.choices[0].message.content
 
-if __name__ =='__main__':
-    df = pd.read_csv(DATA_PATH)
-    text = df.iloc[0]['essay']
+def extract_text_from_pdf(file_path):
+    pdf_doc = fitz.open(file_path)
+    text=''
 
+    for page_num in range(pdf_doc.page_count):
+        page_text=pdf_doc.load_page(page_num)
+        text+=page_text.get_text()
+
+    return text
+
+
+
+def Token_count(prompt,text):
+    num_tokens=len(endcoding.encode(prompt))+len(endcoding.encode(text))
+    print(f'Prompt: {len(endcoding.encode(prompt))} ; Text {len(endcoding.encode(text))}; Final: {num_tokens}')
+
+
+if __name__ =='__main__':
+    # df = pd.read_csv(DATA_PATH)
+    # text = df.iloc[0]['essay']
+    text = extract_text_from_pdf(file_path)
+    print(text)
     final_score = 0
     mas = MAS(text)
     result = mas.evaluate()  
@@ -213,13 +245,24 @@ if __name__ =='__main__':
     statistic = pd.DataFrame(result)
     
     # print(feedback)
-    print(FeedBack_stat_criteria(statistic))
-    print(Feedback_fromLLM(statistic))
+    # print(FeedBack_stat_criteria(statistic))
+    # print(Feedback_fromLLM(statistic))
     # print(FeedBack(text_for_feedback_only_stat_criteria(statistic)))
 
-    for i in result:
-        # print(i)
-        # print('\n')
-        final_score+=float(i['Grade'])*i['Weights']
+    # for i in result:
+    #     # print(i)
+    #     # print('\n')
+    #     final_score+=float(i['Grade'])*i['Weights']
 
-    print('Final score: ',round(final_score,2))
+    # print('Final score: ',round(final_score,2))
+
+    print('Punctuation:')
+    Token_count('Evaluate the punctuation in the given text on a scale from 0 to 10.Print the number and additional comments:',text)
+    print('Structure:')
+    Token_count('Rate the level of structuredness of the following text on a scale from 0 to 10, where 0 means completely chaotic and 10 means perfectly structured. Print the number and additional comments:',text)
+    print('Content:')
+    Token_count('Rate the level of informativeness of the following text on a scale from 0 to 10, where 0 means completely uninformative and 10 means highly informative. Print the number and additional comments:',text)
+    print('Creativity:')
+    Token_count('Rate the level of creativity of the following text on a scale of 0 to 10, where 0 is completely uncreative and 10 is maximally creative. Print the number and additional comments:',text)
+    print('Statistic:')
+    Token_count("",FeedBack_stat_criteria(statistic))

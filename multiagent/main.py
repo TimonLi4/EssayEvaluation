@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 import tiktoken
-from agents import MAS, FeedBack, Feedback_fromLLM, text_for_feedback_only_stat_criteria
+from agents import MAS, FeedBack_stat_criteria, Feedback_fromLLM
 from relevance import Relevance, Create_LDA_essay,clean
 
 import fitz
@@ -74,7 +74,7 @@ if __name__ =='__main__':
     with open('output.txt','w',encoding="utf-8") as file:
         file.write(f'Relevance: {Relevance(new_text_topics)}\n\n\n')
         file.write(statistic.to_string(index=False))
-        file.write(FeedBack(text_for_feedback_only_stat_criteria(statistic)))
+        file.write(FeedBack_stat_criteria(statistic))
         file.write(Feedback_fromLLM(statistic))
         file.write(f'Final score: {round(final_score,2)}')
 
