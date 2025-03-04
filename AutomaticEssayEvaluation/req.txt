@@ -19,6 +19,7 @@ configobj==5.0.9
 configparser==7.1.0
 cymem==2.0.11
 Django==5.1.6
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
 etelemetry==0.3.1
 eval_type_backport==0.2.2
 filelock==3.17.0
@@ -66,6 +67,7 @@ pydantic==2.10.6
 pydantic_core==2.27.2
 pydot==3.0.4
 Pygments==2.19.1
+PyMuPDF==1.25.3
 pyparsing==3.2.1
 pyphen==0.17.2
 python-dateutil==2.9.0.post0
