@@ -11,12 +11,32 @@ A system for automatic essay evaluation using NLP and machine learning.
 git clone https://github.com/TimonLi4/EssayEvaluation
 ```
 
-### 2️⃣ Install Dependencies
+### 2️⃣ Create a Virtual Environment
+Navigate to the project directory and create a virtual environment:
+```sh
+python -m venv .venv
+```
+Activate the virtual environment:
+- **Windows:**
+  ```sh
+  .venv\Scripts\activate
+  ```
+- **Mac/Linux:**
+  ```sh
+  source .venv/bin/activate
+  ```
+
+### 3️⃣ Install Dependencies
+follow the path:
+```sh
+cd EssayEvaluation\AutomaticEssayEvaluation
+```
+Then install dependencies:
 ```sh
 pip install -r req.txt
 ```
 
-### 3️⃣ Install Additional Resources
+### 4️⃣ Install Additional Resources
 
 #### 🔹 Install `spaCy` Model
 Run the following command in the console:
@@ -27,19 +47,14 @@ python -m spacy download en_core_web_sm
 #### 🔹 Download NLTK Resources
 Run the `download.py` file to install required NLTK resources.
 
-### 4️⃣ Set Up API Key
+### 5️⃣ Set Up API Key
 - Generate an API key at [Together AI](https://api.together.ai/).
 - Paste the API key into the `.env` file located at:
   ```
   EssayEvaluation\AutomaticEssayEvaluation\AutomaticEssayEvaluation\.env
   ```
 
-### 5️⃣ Run the Server
-Navigate to the `manage.py` directory:
-```sh
-cd EssayEvaluation\AutomaticEssayEvaluation
-```
-Then start the server:
+### 6️⃣ Run the Server
 ```sh
 python manage.py runserver
 ```
