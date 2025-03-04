@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import os
 
 from .agents import MAS,Feedback_fromLLM,FeedBack_stat_criteria,Relevance
-from .relevance import Score_all#,Create_LDA_article,Create_LDA_essay
+from .relevance import Score_all
 
 load_dotenv()
 
@@ -14,8 +14,6 @@ file_essay = os.getenv('file_essay')
 file_article = os.getenv('FILE_ARTICLE')
 
 
-# file_essay = r'C:\Users\Timon4\Desktop\projectTrainee\AutomaticEssayEvaluation\media\uploads\essays.csv'
-# file_article = r'C:\Users\Timon4\Desktop\projectTrainee\AutomaticEssayEvaluation\media\uploads\bbc_news_text_complexity_summarization.csv'
 
 def main_page(request):
     return render(request,'EssayEvaluation/index.html')
@@ -38,7 +36,6 @@ def relevance(text):
     result = ''
 
     if value1>value2:
-        # print('final -- article')
         result = 'article'
     else:
         print('final -- essay')
