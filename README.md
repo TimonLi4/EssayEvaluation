@@ -8,7 +8,7 @@ A system for automatic essay evaluation using NLP and machine learning.
 
 ### 1️⃣ Clone the Repository
 ```sh
-git clone https://github.com/username/project.git
+git clone https://github.com/TimonLi4/EssayEvaluation
 ```
 
 ### 2️⃣ Install Dependencies
