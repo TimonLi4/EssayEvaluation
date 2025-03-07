@@ -38,12 +38,6 @@ pip install -r req.txt
 
 ### 4️⃣ Install Additional Resources
 
-#### 🔹 Install `spaCy` Model
-Run the following command in the console:
-```sh
-python -m spacy download en_core_web_sm
-```
-
 #### 🔹 Download NLTK Resources
 Run the `download.py` file to install required NLTK resources.
 
