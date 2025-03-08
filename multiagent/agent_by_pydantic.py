@@ -14,7 +14,7 @@ import asyncio
 import pandas as pd
 
 
-from EssayEvaluation.multiagent.agent_model import agent
+from .agent_model import agent
 
 
 tokenizer_to_words = WordPunctTokenizer()

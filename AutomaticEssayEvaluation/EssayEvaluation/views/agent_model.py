@@ -23,11 +23,8 @@ model_together = OpenAIModel(
     api_key=TOGETHER_API_KEY
 )
 
-# agent = Agent(
-#     model=model_ollama,
-#     # system_prompt=['Reply in one sentence']
-# )
 
 agent = Agent(
-    model= model_together
+    # model= model_together
+    model= model_ollama
 )
