@@ -25,6 +25,6 @@ model_together = OpenAIModel(
 
 
 agent = Agent(
-    # model= model_together
-    model= model_ollama
+    model= model_together
+    # model= model_ollama
 )

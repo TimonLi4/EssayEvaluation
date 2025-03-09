@@ -1,26 +1,23 @@
+import time
+import ollama
+from pydantic_ai import Agent
 from textblob import TextBlob
 from nltk.tokenize import WordPunctTokenizer
 from nltk.corpus import stopwords
 import spacy
 import math
-import string
-import pandas as pd
-import os
-from dotenv import load_dotenv
 import language_tool_python
-import asyncio
-from pydantic_ai import Agent
-
-from .agent_model import agent
 import pyphen
+import math
+import string
+import os
+import fitz
+import asyncio
+import pandas as pd
 
-from together import Together
 
-load_dotenv()
+# from .agent_model import agent
 
-DATA_PATH = os.getenv('DATA_PATH')
-API_KEY = os.getenv('API_KEY')
-client = Together(api_key=API_KEY)
 
 tokenizer_to_words = WordPunctTokenizer()
 dic = pyphen.Pyphen(lang='en')
@@ -134,36 +131,83 @@ class Grammar(BaseAgent):
 
         return {'name':'Total Errors','value': num_errors, 'Grade': round(score, 2),'Weights':0.15}
 
-class Punctuation(AsyncAgentMixin,BaseAgent):
+class Punctuation(AsyncAgentMixin, BaseAgent):
     def __init__(self, processor):
         self.processor = processor
-    async def _async_analyze(self):
-        response = await agent.run(f"Rate the punctuation quality of the following text on a scale from 0 to 10, where 0 means highly inaccurate and 10 means perfectly accurate. Print the number and additional comments: {self.processor.text}")
-        return {'name':'Punctuation','value':'','Grade':response.data.split()[0],'Weights':0.05,'comments':response.data}
 
+    async def _async_analyze(self):
+        message = {'role':'user',
+                   'content':f"Rate the punctuation quality of the following text on a scale from 0 to 10, where 0 means highly inaccurate and 10 means perfectly accurate. Print the number and additional comments: {self.processor.text}"}
+        response = await ollama.AsyncClient().chat(
+            model='mistral',  # Можно выбрать другую модель
+            messages=[message]
+        )
+        return {
+            'name': 'Punctuation',
+            'value': '',
+            'Grade': response['message']['content'].split()[0],  # Извлекаем оценку
+            'Weights': 0.05,
+            'comments': response['message']['content']
+        }
+    
 class StructureAgent(AsyncAgentMixin,BaseAgent):
     def __init__(self, processor):
         self.processor = processor
     async def _async_analyze(self):
-        response = await agent.run(f"Rate the level of structuredness of the following text on a scale from 0 to 10, where 0 means completely chaotic and 10 means perfectly structured. Print the number and additional comments:{self.processor.text}")
-        return {'name':'Structure','value':'','Grade':response.data.split()[0],'Weights':0.05,'comments':response.data}
+        message = {'role':'user',
+                   'content':f"Rate the punctuation quality of the following text on a scale from 0 to 10, where 0 means highly inaccurate and 10 means perfectly accurate. Print the number and additional comments: {self.processor.text}"}
+        response = await ollama.AsyncClient().chat(
+            model='mistral',  # Можно выбрать другую модель
+            messages=[message]
+        )
+        return {
+            'name': 'Punctuation',
+            'value': '',
+            'Grade': response['message']['content'].split()[0],  # Извлекаем оценку
+            'Weights': 0.05,
+            'comments': response['message']['content']
+        }
     
 class ContentAgent(AsyncAgentMixin,BaseAgent):
     def __init__(self, processor):
         self.processor = processor
     async def _async_analyze(self):
-        response = await agent.run(f"Rate the level of informativeness of the following text on a scale from 0 to 10, where 0 means completely uninformative and 10 means highly informative. Print the number and additional comments:{self.processor.text}")
-        return {'name':'Content','value':'','Grade':response.data.split()[0],'Weights':0.05,'comments':response.data}
+        message = {'role':'user',
+                   'content':f"Rate the level of structuredness of the following text on a scale from 0 to 10, where 0 means completely chaotic and 10 means perfectly structured. Print the number and additional comments:{self.processor.text}"}
+        response = await ollama.AsyncClient().chat(
+            model='mistral',  # Можно выбрать другую модель
+            messages=[message]
+        )
+        return {
+            'name': 'Punctuation',
+            'value': '',
+            'Grade': response['message']['content'].split()[0],  # Извлекаем оценку
+            'Weights': 0.05,
+            'comments': response['message']['content']
+        }
     
 class CreativityAgent(AsyncAgentMixin,BaseAgent):
     def __init__(self, processor):
         self.processor = processor
     async def _async_analyze(self):
-        
-        response = await agent.run(f"Rate the level of creativity of the following text on a scale of 0 to 10, where 0 is completely uncreative and 10 is maximally creative. Print the number and additional comments:{self.processor.text}")
-        return {'name':'Creativity','value':'','Grade':response.data.split()[0],'Weights':0.05,'comments':response.data}
+        message = {'role':'user',
+                   'content':f"Rate the level of creativity of the following text on a scale of 0 to 10, where 0 is completely uncreative and 10 is maximally creative. Print the number and additional comments:{self.processor.text}"}
+        response = await ollama.AsyncClient().chat(
+            model='mistral',  # Можно выбрать другую модель
+            messages=[message]
+        )
+        return {
+            'name': 'Punctuation',
+            'value': '',
+            'Grade': response['message']['content'].split()[0],  # Извлекаем оценку
+            'Weights': 0.05,
+            'comments': response['message']['content']
+        }
+
+
 
 class MASManager:
+    """Менеджер мультиагентной системы."""
     def __init__(self, text: str):
         self.processor = TextProcessor(text)
         self.agents = [
@@ -195,26 +239,29 @@ class MASManager:
         # Параллельно выполняем асинхронные задачи
         async_part = await asyncio.gather(*async_results)
         return sync_results + async_part
+    
 
+def extract_text_from_pdf(file_path):
+    pdf_doc = fitz.open(file_path)
+    text=''
 
+    for page_num in range(pdf_doc.page_count):
+        page_text=pdf_doc.load_page(page_num)
+        text+=page_text.get_text()
 
-
-def Feedback_fromLLM(df):
-    text = ''
-    for i in range(df.shape[0]):
-        
-        if not pd.isna(df.iloc[i]['comments']): 
-            text+= f"{df.iloc[i]['name']} | {df.iloc[i]['comments']} \n\n\n"
     return text
 
-async def FeedBack_stat_criteria(df):
-    text = ''
-    for i in range(df.shape[0]):
-            if pd.isna(df.iloc[i]['comments']):      
-                text += f"{df.iloc[i]['name']} - {df.iloc[i]['value']} | Grade - {df.iloc[i]['Grade']} \n"
-    response = await agent.run(f"Based on the provided text metrics and grades, generate detailed feedback on the text's quality. Analyze each metric and give an evaluation of the text's strengths and areas for improvement. Focus on lexical diversity, sentence complexity, readability, emotional coloring, and clarity. Conclude with overall feedback on the text's readability, target audience suitability, and possible improvements. Metrics: {text}")
-    return response.data
 
-async def Relevance(text):
-    response = await agent.run(f"Analyze the following text and determine whether it is an essay or an article. An essay typically contains personal reflections, a subjective point of view, and an individual writing style, whereas an article aims for objectivity, structure, and the use of facts. Answer with one word: 'essay' or 'article'.  Text:{text}")
-    return response.data
+
+
+async def main():
+    start_time = time.time()
+    text = extract_text_from_pdf('essay.pdf')
+    print(text)
+    manager = MASManager(text)
+    results = await manager.run()
+    print(pd.DataFrame(results))
+    print('\n\n',time.time()-start_time)
+
+if __name__ =='__main__':
+    asyncio.run(main())    
